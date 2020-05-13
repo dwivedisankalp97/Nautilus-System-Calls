@@ -63,14 +63,10 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
   	nk_vc_printf("Invoked syscall no: %d\n",r->rax);
   	unsigned long tid = getpid();
 	// Write to RAX
-	uint64_t test = 800;
-	__asm__ __volatile__(
-			"movq $1, %%rax;"
-			:
-			:"r"(test)
-			:"%rax"
-			);
-  	nk_vc_printf("Returning new pid\n");
+	uint64_t *test = &tid;
+  	nk_vc_printf("Returning new pid %ld\n",*test);
+    nk_vc_printf("Returning new pid %ld\n",tid);
+	r->rax = tid;
 	//return 0;
   //}
   // now you have access to the registers at the system call site:   r->rax,
