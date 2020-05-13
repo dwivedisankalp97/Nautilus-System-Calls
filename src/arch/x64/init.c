@@ -169,6 +169,7 @@
 #include <nautilus/monitor.h>
 #endif
 
+#include <nautilus/syscall.h>
 
 extern spinlock_t printk_lock;
 
@@ -565,8 +566,9 @@ init (unsigned long mbd,
     nk_watchdog_init(NAUT_CONFIG_WATCHDOG_DEFAULT_TIME_MS * 1000000UL);
 #endif
     
+    nk_syscall_init(); 
     nk_launch_shell("root-shell",0,0,0);
-
+   
     runtime_init();
 
     printk("Nautilus boot thread yielding (indefinitely)\n");

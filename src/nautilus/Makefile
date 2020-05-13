@@ -55,6 +55,7 @@ obj-y += \
 	linker.o \
 	prog.o \
 	getopt.o \
+	syscall.o \
 	cmdline.o
 
 obj-$(NAUT_CONFIG_PROFILE) += instrument.o
