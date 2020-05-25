@@ -59,16 +59,13 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
 
   struct nk_regs *r = (struct nk_regs *)((char *)excp - 128);
   nk_vc_printf("Inside syscall irq handler\n");
-  //if(r->rax==39){
+  if(r->rax==39){
   	nk_vc_printf("Invoked syscall no: %d\n",r->rax);
   	unsigned long tid = getpid();
 	// Write to RAX
-	uint64_t *test = &tid;
-  	nk_vc_printf("Returning new pid %ld\n",*test);
     nk_vc_printf("Returning new pid %ld\n",tid);
-	r->rax = tid;
-	//return 0;
-  //}
+    r->rax = tid;
+  }
   // now you have access to the registers at the system call site:   r->rax,
 
   // r->rbx, etc.
@@ -84,20 +81,29 @@ void nk_syscall_init() { register_int_handler(0x80, int80_handler, 0); }
 
 static int handle_syscall_test(char *buf, void *priv) {
   nk_vc_printf("Shell command for testing syscall invoked\n");
-  uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0); // get PID
-  //unsigned long pid;
-  nk_vc_printf("%ld\n",pid);
+  nk_vc_printf("%s\n",buf);
+
+  while(*buf != ' '){
+    buf++;
+  }
+
+  buf++;
+  
+  if(strcmp(buf,"getpid") == 0){
+    uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0);
+    nk_vc_printf("%ld\n",pid);
+  }
+  
   return 0;
 
 }
 
 
-
 static struct shell_cmd_impl syscall_impl = {
 
-    .cmd = "syscall_test",
+    .cmd = "syscall",
 
-    .help_str = "syscall_test",
+    .help_str = "syscall [test]",
 
     .handler = handle_syscall_test,
 
