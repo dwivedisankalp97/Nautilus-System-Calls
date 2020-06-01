@@ -1,0 +1,13 @@
+Does the write system call only work if a file system is loaded. If so how should I test it.
+Difference between nk_fs_open and open
+How to write on the current shell. Is the shell a file in nautilus?
+Can I use the function [ssize_t    nk_fs_write(nk_fs_fd_t fd, void *buf, size_t len)] directly in the system call?
+
+How to get the current running thread or process?
+
+
+I tried implementing exit system call using nk_thread_exit, but it exit the thread used by the shell. Does nautilus not create new thread for every command?
+
+Do i have to use any locks inside system calls?
+
+what are the compatibility issues that we can face if we implement syscall using already existing functions such as nk_fs_write and nk_thread_fork.

@@ -3,8 +3,8 @@
 #include <nautilus/irq.h>
 
 #include <nautilus/nautilus.h>
-
-#include <nautilus/syscall.h>
+#include <nautilus/syscalls/exit.h>
+#include <nautilus/syscalls/fork.h>
 #include <nautilus/shell.h>
 #include <nautilus/thread.h>
 
@@ -66,6 +66,24 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
     nk_vc_printf("Returning new pid %ld\n",tid);
     r->rax = tid;
   }
+
+  // Exit
+  else if(r->rax == 60){
+    sys_exit(0);
+    r->rax = 0;
+  }
+
+  else if(r->rax == 57){
+    void* ret;
+    ret = sys_fork();
+    ulong_t t = (ulong_t)ret;
+    r->rax = t;
+
+  }
+
+  // else if(r->rax == 2){
+  //
+  // }
   // now you have access to the registers at the system call site:   r->rax,
 
   // r->rbx, etc.
@@ -88,12 +106,22 @@ static int handle_syscall_test(char *buf, void *priv) {
   }
 
   buf++;
-  
+
   if(strcmp(buf,"getpid") == 0){
     uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n",pid);
   }
-  
+
+  else if(strcmp(buf,"exit") == 0){
+    uint64_t pid = syscall_int80(60, 0, 0, 0, 0, 0, 0);
+    nk_vc_printf("%ld\n",pid);
+  }
+
+  else if(strcmp(buf,"fork") == 0){
+    uint64_t pid = syscall_int80(57, 0, 0, 0, 0, 0, 0);
+    nk_vc_printf("%ld\n",pid);
+  }
+
   return 0;
 
 }

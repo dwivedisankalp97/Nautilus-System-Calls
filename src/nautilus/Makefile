@@ -42,6 +42,7 @@ obj-y += \
 	pmc.o \
 	setjmp.o \
 	mm/ \
+	syscalls/ \
 	dev.o \
 	chardev.o \
 	blkdev.o \
@@ -55,7 +56,6 @@ obj-y += \
 	linker.o \
 	prog.o \
 	getopt.o \
-	syscall.o \
 	cmdline.o
 
 obj-$(NAUT_CONFIG_PROFILE) += instrument.o
