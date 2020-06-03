@@ -3,4 +3,10 @@ obj-y += \
 	open.o \
 	write.o \
 	fork.o \
-	syscall.o \
+	stat.o \
+	read.o \
+	close.o \
+	fstat.o \
+	lseek.o \
+	ftruncate.o \
+	syscall.o

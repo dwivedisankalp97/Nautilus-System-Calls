@@ -8,4 +8,5 @@ sys_open(char *filename,
 {
 	struct nk_fs_open_file_state *file;
 	file = nk_fs_open(filename,flags,(int)mode);
+	return file;
 }
