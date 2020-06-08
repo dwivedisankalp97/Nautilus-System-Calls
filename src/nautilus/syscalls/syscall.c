@@ -3,90 +3,64 @@
 #include <nautilus/irq.h>
 
 #include <nautilus/nautilus.h>
-#include <nautilus/syscalls/exit.h>
-#include <nautilus/syscalls/fork.h>
 #include <nautilus/shell.h>
 #include <nautilus/thread.h>
+#include <nautilus/syscall.h>
+#include <nautilus/syscall_kernel.h>
 
-uint64_t syscall_int80(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3,
+#ifndef NAUT_CONFIG_DEBUG_TIMERS
+#undef DEBUG_PRINT
+#define DEBUG_PRINT(fmt, args...)
+#endif
 
-                       uint64_t a4, uint64_t a5, uint64_t a6) {
-
-  uint64_t rc;
-
-  __asm__ __volatile__(
-
-
-
-      "movq %1, %%rax; "
-
-      "movq %2, %%rdi; "
-
-      "movq %3, %%rsi; "
-
-      "movq %4, %%rdx; "
-
-      "movq %5, %%r10; "
-
-      "movq %6, %%r8; "
-
-      "movq %7, %%r9; "
-
-      "int $0x80; "
-
-      "movq %%rax, %0; "
-
-      : "=m"(rc)
-
-      : "m"(num), "m"(a1), "m"(a2), "m"(a3), "m"(a4), "m"(a5), "m"(a6)
-
-      : "%rax", "%rdi", "%rsi", "%rdx", "%r10", "%r8", "%r9", "%r11");
+#define ERROR(fmt, args...) ERROR_PRINT("timer: " fmt, ##args)
+#define DEBUG(fmt, args...) DEBUG_PRINT("timer: " fmt, ##args)
+#define INFO(fmt, args...) INFO_PRINT("timer: " fmt, ##args)
 
 
+#define MAX_SYSCALL 301
+typedef int (*syscall_t)(int, int, int, int, int, int);
 
-  return rc;
 
+syscall_t syscall_table[MAX_SYSCALL];
+
+void init_syscall_table(){
+
+  int i;
+
+  for(i=0;i<MAX_SYSCALL;i++){
+    syscall_table[i] = 0;
+  }
+
+
+  syscall_table[READ] = &sys_read;
+  syscall_table[WRITE] = &sys_write;
+  syscall_table[OPEN] = &sys_open;
+  syscall_table[CLOSE] = &sys_close;
+  syscall_table[STAT] = &sys_stat;
+  syscall_table[FSTAT] = &sys_fstat;
+  syscall_table[LSEEK] = &sys_lseek;
+  syscall_table[FORK] = &sys_fork;
+  syscall_table[EXIT] = &sys_exit;
+  syscall_table[FTRUNCATE] = &sys_ftruncate;
+  syscall_table[GETPID] = &sys_getpid;
+
+  return;
 }
 
 
-unsigned long getpid(){
-  nk_thread_t *thread_id = get_cur_thread();
-  unsigned long tid = thread_id->tid;
-  return tid;
-}
 
 int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
 
   struct nk_regs *r = (struct nk_regs *)((char *)excp - 128);
-  nk_vc_printf("Inside syscall irq handler\n");
-  if(r->rax==39){
-  	nk_vc_printf("Invoked syscall no: %d\n",r->rax);
-  	unsigned long tid = getpid();
-	// Write to RAX
-    nk_vc_printf("Returning new pid %ld\n",tid);
-    r->rax = tid;
+  int syscall_nr = (int)r->rax;
+  INFO_PRINT("Inside syscall irq handler\n");
+  if (syscall_table[syscall_nr] != 0){
+    r->rax = syscall_table[syscall_nr](r->rdi,r->rsi,r->rdx,r->r10,r->r8,r->r9);
   }
-
-  // Exit
-  else if(r->rax == 60){
-    sys_exit(0);
-    r->rax = 0;
+  else{
+    INFO_PRINT("System Call not Implemented!!");
   }
-
-  else if(r->rax == 57){
-    void* ret;
-    ret = sys_fork();
-    ulong_t t = (ulong_t)ret;
-    r->rax = t;
-
-  }
-
-  // else if(r->rax == 2){
-  //
-  // }
-  // now you have access to the registers at the system call site:   r->rax,
-
-  // r->rbx, etc.
   return 0;
 }
 
@@ -98,8 +72,8 @@ void nk_syscall_init() { register_int_handler(0x80, int80_handler, 0); }
 // handle shell command
 
 static int handle_syscall_test(char *buf, void *priv) {
-  nk_vc_printf("Shell command for testing syscall invoked\n");
-  nk_vc_printf("%s\n",buf);
+  INFO_PRINT("Shell command for testing syscall invoked\n");
+  INFO_PRINT("%s\n",buf);
 
   while(*buf != ' '){
     buf++;
@@ -120,6 +94,10 @@ static int handle_syscall_test(char *buf, void *priv) {
   else if(strcmp(buf,"fork") == 0){
     uint64_t pid = syscall_int80(57, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n",pid);
+  }
+
+  else{
+    syscall_int80(MAX_SYSCALL-1, 0, 0, 0, 0, 0, 0);
   }
 
   return 0;

@@ -1,18 +1,18 @@
-/* 
+/*
  * This file is part of the Nautilus AeroKernel developed
- * by the Hobbes and V3VEE Projects with funding from the 
- * United States National  Science Foundation and the Department of Energy.  
+ * by the Hobbes and V3VEE Projects with funding from the
+ * United States National  Science Foundation and the Department of Energy.
  *
  * The V3VEE Project is a joint project between Northwestern University
  * and the University of New Mexico.  The Hobbes Project is a collaboration
- * led by Sandia National Laboratories that includes several national 
+ * led by Sandia National Laboratories that includes several national
  * laboratories and universities. You can find out more at:
  * http://www.v3vee.org  and
  * http://xstack.sandia.gov/hobbes
  *
  * Copyright (c) 2016, Brady Lee and David Williams
  * Copyright (c) 2016, Peter Dinda
- * Copyright (c) 2016, The V3VEE Project  <http://www.v3vee.org> 
+ * Copyright (c) 2016, The V3VEE Project  <http://www.v3vee.org>
  *                     The Hobbes Project <http://xstack.sandia.gov/hobbes>
  * All rights reserved.
  *
@@ -55,10 +55,10 @@ struct nk_fs_open_file_state {
     spinlock_t lock;
 
     struct list_head file_node;
-    
+
     struct nk_fs  *fs;
     void          *file;
-    
+
     size_t   position;
     int      flags;
 };
@@ -68,12 +68,12 @@ static spinlock_t state_lock;
 static struct list_head fs_list;
 static struct list_head open_files;
 
-static void map_over_open_files(void (*callback)(nk_fs_fd_t)) 
+static void map_over_open_files(void (*callback)(nk_fs_fd_t))
 {
     struct list_head *cur;
     struct list_head *temp;
     nk_fs_fd_t fd;
-    
+
     list_for_each_safe(cur, temp, &open_files) {
 	fd = list_entry(cur,struct nk_fs_open_file_state, file_node);
 	callback(fd);
@@ -87,7 +87,7 @@ static ssize_t __seek(nk_fs_fd_t fd, size_t offset, int whence);
 
 //static void directory_list(char *path);
 
-static int path_stat(struct nk_fs *fs, char *path, struct nk_fs_stat *st) 
+static int path_stat(struct nk_fs *fs, char *path, struct nk_fs_stat *st)
 {
     if (fs && fs->interface && fs->interface->stat_path) {
 	return fs->interface->stat_path(fs->state, path, st);
@@ -97,7 +97,7 @@ static int path_stat(struct nk_fs *fs, char *path, struct nk_fs_stat *st)
 }
 
 
-static int file_stat(struct nk_fs *fs, void *file, struct nk_fs_stat *st) 
+static int file_stat(struct nk_fs *fs, void *file, struct nk_fs_stat *st)
 {
     if (fs && fs->interface && fs->interface->stat) {
 	return fs->interface->stat(fs->state, file, st);
@@ -107,7 +107,7 @@ static int file_stat(struct nk_fs *fs, void *file, struct nk_fs_stat *st)
 }
 
 
-static void * file_open(struct nk_fs *fs, char *path, int access) 
+static void * file_open(struct nk_fs *fs, char *path, int access)
 {
     if (fs && fs->interface && fs->interface->open_file) {
 	return fs->interface->open_file(fs->state, path);
@@ -117,7 +117,7 @@ static void * file_open(struct nk_fs *fs, char *path, int access)
 }
 
 
-static void *file_create(struct nk_fs *fs, char* path) 
+static void *file_create(struct nk_fs *fs, char* path)
 {
     if (fs && fs->interface && fs->interface->create_file) {
 	return fs->interface->create_file(fs->state, path);
@@ -135,13 +135,13 @@ static int file_trunc(nk_fs_fd_t fd, off_t len)
     }
 }
 
-static inline ssize_t file_read(nk_fs_fd_t fd, char *buf, size_t num_bytes) 
+static inline ssize_t file_read(nk_fs_fd_t fd, char *buf, size_t num_bytes)
 {
-    if (!FS_FD_ERR(fd) && fd->fs && fd->fs->interface 
+    if (!FS_FD_ERR(fd) && fd->fs && fd->fs->interface
 	&& fd->fs->interface->read_file) {
-	return fd->fs->interface->read_file(fd->fs->state, 
-					    fd->file, 
-					    buf, 
+	return fd->fs->interface->read_file(fd->fs->state,
+					    fd->file,
+					    buf,
 					    fd->position,
 					    num_bytes);
     } else {
@@ -149,13 +149,13 @@ static inline ssize_t file_read(nk_fs_fd_t fd, char *buf, size_t num_bytes)
     }
 }
 
-static inline ssize_t file_write(nk_fs_fd_t fd, char *buf, size_t num_bytes) 
+static inline ssize_t file_write(nk_fs_fd_t fd, char *buf, size_t num_bytes)
 {
-    if (!FS_FD_ERR(fd) && fd->fs && fd->fs->interface 
+    if (!FS_FD_ERR(fd) && fd->fs && fd->fs->interface
 	&& fd->fs->interface->write_file) {
-	return fd->fs->interface->write_file(fd->fs->state, 
-					     fd->file, 
-					     buf, 
+	return fd->fs->interface->write_file(fd->fs->state,
+					     fd->file,
+					     buf,
 					     fd->position,
 					     num_bytes);
     } else {
@@ -164,26 +164,26 @@ static inline ssize_t file_write(nk_fs_fd_t fd, char *buf, size_t num_bytes)
 }
 
 
-static int exists(struct nk_fs *fs, char *path) 
+static int exists(struct nk_fs *fs, char *path)
 {
     //    DEBUG("Exists (%s, %s)\n",fs->name,path);
-    if (fs && fs->interface && fs->interface->exists) { 
+    if (fs && fs->interface && fs->interface->exists) {
 	return fs->interface->exists(fs->state, path);
     } else {
 	return 0;
     }
 }
 
-static int remove(struct nk_fs *fs, char* path) 
+static int remove(struct nk_fs *fs, char* path)
 {
-    if (fs && fs->interface && fs->interface->remove) { 
+    if (fs && fs->interface && fs->interface->remove) {
 	return fs->interface->remove(fs->state, path);
     } else {
 	return -1;
     }
 }
 
-int nk_fs_init(void) 
+int nk_fs_init(void)
 {
     INIT_LIST_HEAD(&fs_list);
     INIT_LIST_HEAD(&open_files);
@@ -192,7 +192,7 @@ int nk_fs_init(void)
     return 0;
 }
 
-int nk_deinit_fs(void) 
+int nk_deinit_fs(void)
 {
     if (!list_empty(&open_files)) {
 	ERROR("Open files remain.. closing them\n");
@@ -217,7 +217,7 @@ struct nk_fs *nk_fs_register(char *name, uint64_t flags, struct nk_fs_int *inter
 	ERROR("Failed to allocate filesystem\n");
 	return 0;
     }
-    
+
     memset(f,0,sizeof(*f));
 
     strncpy(f->name,name,FS_NAME_LEN); f->name[FS_NAME_LEN-1]=0;
@@ -229,9 +229,9 @@ struct nk_fs *nk_fs_register(char *name, uint64_t flags, struct nk_fs_int *inter
     STATE_LOCK();
     list_add(&f->fs_list_node,&fs_list);
     STATE_UNLOCK();
-    
+
     INFO("Added filesystem with name %s and flags 0x%lx\n", f->name,f->flags);
-    
+
     return f;
 }
 
@@ -251,7 +251,7 @@ static struct nk_fs *__fs_find(char *name)
     struct list_head *cur;
     struct nk_fs *target=0;
     list_for_each(cur,&fs_list) {
-	if (!strncasecmp(list_entry(cur,struct nk_fs,fs_list_node)->name,name,FS_NAME_LEN)) { 
+	if (!strncasecmp(list_entry(cur,struct nk_fs,fs_list_node)->name,name,FS_NAME_LEN)) {
 	    target = list_entry(cur,struct nk_fs, fs_list_node);
 	    break;
 	}
@@ -305,7 +305,7 @@ int nk_fs_stat(char *path, struct nk_fs_stat *st)
     fs = __fs_find(fs_name);
     STATE_UNLOCK();
 
-    if (!fs) { 
+    if (!fs) {
 	ERROR("Cannot find filesystem named %s\n",fs_name);
 	return -1;
     }
@@ -316,24 +316,24 @@ int nk_fs_stat(char *path, struct nk_fs_stat *st)
 int nk_fs_truncate(char *path, off_t len)
 {
     nk_fs_fd_t fd = nk_fs_open(path,O_RDWR,0);
-    
-    if (FS_FD_ERR(fd)) { 
+
+    if (FS_FD_ERR(fd)) {
 	return -1;
     } else{
-	if (nk_fs_ftruncate(fd,len)) { 
+	if (nk_fs_ftruncate(fd,len)) {
 	    return -1;
 	} else {
 	    return nk_fs_close(fd);
 	}
     }
-}	
+}
 
-nk_fs_fd_t nk_fs_creat(char *path, int mode) 
+nk_fs_fd_t nk_fs_creat(char *path, int mode)
 {
     return nk_fs_open(path,O_WRONLY|O_TRUNC|O_CREAT,0);
 }
 
-nk_fs_fd_t nk_fs_open(char *path, int flags, int mode) 
+nk_fs_fd_t nk_fs_open(char *path, int flags, int mode)
 {
     STATE_LOCK_CONF;
     struct nk_fs *fs;
@@ -347,13 +347,13 @@ nk_fs_fd_t nk_fs_open(char *path, int flags, int mode)
     fs = __fs_find(fs_name);
     STATE_UNLOCK();
 
-    if (!fs) { 
+    if (!fs) {
 	ERROR("Cannot find filesystem named %s\n",fs_name);
 	return FS_BAD_FD;
     }
 
     nk_fs_fd_t fd = malloc(sizeof(*fd));
-    if (!fd) { 
+    if (!fd) {
 	ERROR("Can't allocate new open file entry\n");
 	return FS_BAD_FD;
     }
@@ -368,7 +368,7 @@ nk_fs_fd_t nk_fs_open(char *path, int flags, int mode)
 	fd->file = file_open(fs, path, flags);
     } else if (flags & O_CREAT) {
 	DEBUG("path %s does not exist, but creating file\n",path);
-	if ((fs->flags & NK_FS_READONLY)) { 
+	if ((fs->flags & NK_FS_READONLY)) {
 	    ERROR("Filesystem is not writeable so cannot create file\n");
 	    return FS_BAD_FD;
 	}
@@ -379,18 +379,18 @@ nk_fs_fd_t nk_fs_open(char *path, int flags, int mode)
 	    return FS_BAD_FD;
 	} else {
 	    DEBUG("Created file %s on fs %s file=%p ", path, fs_name, fd);
-	} 
+	}
     } else {
 	DEBUG("path %s does not exist, and no creation requested\n",path);
 	free(fd);
 	return FS_BAD_FD;
     }
-    
+
     STATE_LOCK();
     list_add(&fd->file_node, &open_files);
     STATE_UNLOCK();
 
-    if (flags & O_TRUNC) { 
+    if (flags & O_TRUNC) {
 	file_trunc(fd,0);
     }
 
@@ -403,7 +403,7 @@ nk_fs_fd_t nk_fs_open(char *path, int flags, int mode)
     return fd;
 }
 
-int nk_fs_close(nk_fs_fd_t fd) 
+int nk_fs_close(nk_fs_fd_t fd)
 {
     STATE_LOCK_CONF;
 
@@ -412,11 +412,11 @@ int nk_fs_close(nk_fs_fd_t fd)
     STATE_UNLOCK();
 
     free(fd);
-    
+
     return 0;
 }
 
-ssize_t nk_fs_read(nk_fs_fd_t fd, void *buf, size_t num_bytes) 
+ssize_t nk_fs_read(nk_fs_fd_t fd, void *buf, size_t num_bytes)
 {
     FILE_LOCK_CONF;
 
@@ -437,7 +437,7 @@ ssize_t nk_fs_read(nk_fs_fd_t fd, void *buf, size_t num_bytes)
     return n;
 }
 
-ssize_t nk_fs_write(nk_fs_fd_t fd, void *buf, size_t num_bytes) 
+ssize_t nk_fs_write(nk_fs_fd_t fd, void *buf, size_t num_bytes)
 {
     FILE_LOCK_CONF;
 
@@ -448,7 +448,7 @@ ssize_t nk_fs_write(nk_fs_fd_t fd, void *buf, size_t num_bytes)
 	return -1;
     }
 
-    if (fd->fs->flags & NK_FS_READONLY) { 
+    if (fd->fs->flags & NK_FS_READONLY) {
 	ERROR("Not a writeable filesystem\n");
 	return -1;
     }
@@ -468,7 +468,7 @@ int nk_fs_ftruncate(nk_fs_fd_t fd, off_t len)
     FILE_LOCK_CONF;
     int rc;
 
-    if (fd->fs->flags & NK_FS_READONLY) { 
+    if (fd->fs->flags & NK_FS_READONLY) {
 	ERROR("Filesystem is not writeable so cannot truncate file\n");
 	return -1;
     }
@@ -484,7 +484,7 @@ int nk_fs_fstat(nk_fs_fd_t fd, struct nk_fs_stat *st)
     return file_stat(fd->fs,fd->file,st);
 }
 
-static ssize_t __seek(nk_fs_fd_t fd, size_t offset, int whence) 
+static ssize_t __seek(nk_fs_fd_t fd, size_t offset, int whence)
 {
     if (whence == 0) {
 	fd->position = offset;
@@ -492,8 +492,8 @@ static ssize_t __seek(nk_fs_fd_t fd, size_t offset, int whence)
 	fd->position += offset;
     } else if (whence == 2) {
 	struct nk_fs_stat st;
-	
-	if (file_stat(fd->fs,fd->file,&st)) { 
+
+	if (file_stat(fd->fs,fd->file,&st)) {
 	    ERROR("Cannot stat file\n");
 	    return -1;
 	}
@@ -501,11 +501,11 @@ static ssize_t __seek(nk_fs_fd_t fd, size_t offset, int whence)
     }	else {
 	return -1;
     }
-    
+
     return fd->position;
 }
- 
-off_t nk_fs_seek(nk_fs_fd_t fd, off_t offset, int whence) 
+
+off_t nk_fs_seek(nk_fs_fd_t fd, off_t offset, int whence)
 {
     FILE_LOCK_CONF;
     ssize_t s;
@@ -518,9 +518,9 @@ off_t nk_fs_seek(nk_fs_fd_t fd, off_t offset, int whence)
 
 
 
-ssize_t nk_fs_tell(nk_fs_fd_t fd) 
+ssize_t nk_fs_tell(nk_fs_fd_t fd)
 {
-    return fd->position; 
+    return fd->position;
 }
 
 
@@ -557,7 +557,7 @@ void nk_fs_dump_files()
 static int
 handle_attach (char * buf, void * priv)
 {
-    char type[32], devname[32], fsname[32]; 
+    char type[32], devname[32], fsname[32];
     uint64_t start, count;
     struct nk_block_dev *d;
     struct nk_block_dev_characteristics c;
@@ -568,8 +568,8 @@ handle_attach (char * buf, void * priv)
         return -1;
     }
 
-    if (!strcmp(type,"ext2")) { 
-#ifndef NAUT_CONFIG_EXT2_FILESYSTEM_DRIVER 
+    if (!strcmp(type,"ext2")) {
+#ifndef NAUT_CONFIG_EXT2_FILESYSTEM_DRIVER
         nk_vc_printf("Not compiled with EXT2 support, cannot attach\n");
         return -1;
 #else
@@ -668,8 +668,8 @@ void test_fs() {
 		 DEBUG("Read %d", read(fn, buf, 15));
 		 DEBUG("Read %s", buf);
 	//int inum = get_inode_by_path(&RAMFS_START, path);
-	//DEBUG("Inode %d", inum); 
-	//DEBUG("Size %d", ext2_get_size(&RAMFS_START, inum)); 
+	//DEBUG("Inode %d", inum);
+	//DEBUG("Size %d", ext2_get_size(&RAMFS_START, inum));
 	//DEBUG("Done creating");
 	//DEBUG("");
 	free(buf);
@@ -735,14 +735,14 @@ handle_cat (char * buf, void * priv)
 
     while (*buf && *buf==' ') { buf++;}
 
-    if (!*buf) { 
+    if (!*buf) {
         nk_vc_printf("No file requested\n");
         return 0;
     }
 
     nk_fs_fd_t fd = nk_fs_open(buf,O_RDONLY,0);
 
-    if (FS_FD_ERR(fd)) { 
+    if (FS_FD_ERR(fd)) {
         nk_vc_printf("Cannot open \"%s\"\n",buf);
         return 0;
     }
@@ -782,4 +782,3 @@ static struct shell_cmd_impl cat_impl = {
     .handler  = handle_cat,
 };
 nk_register_shell_cmd(cat_impl);
-

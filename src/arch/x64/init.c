@@ -1,17 +1,17 @@
-/* 
+/*
  * This file is part of the Nautilus AeroKernel developed
- * by the Hobbes and V3VEE Projects with funding from the 
- * United States National  Science Foundation and the Department of Energy.  
+ * by the Hobbes and V3VEE Projects with funding from the
+ * United States National  Science Foundation and the Department of Energy.
  *
  * The V3VEE Project is a joint project between Northwestern University
  * and the University of New Mexico.  The Hobbes Project is a collaboration
- * led by Sandia National Laboratories that includes several national 
+ * led by Sandia National Laboratories that includes several national
  * laboratories and universities. You can find out more at:
  * http://www.v3vee.org  and
  * http://xstack.sandia.gov/hobbes
  *
  * Copyright (c) 2015, Kyle C. Hale <kh@u.northwestern.edu>
- * Copyright (c) 2015, The V3VEE Project  <http://www.v3vee.org> 
+ * Copyright (c) 2015, The V3VEE Project  <http://www.v3vee.org>
  *                     The Hobbes Project <http://xstack.sandia.gov/hobbes>
  * All rights reserved.
  *
@@ -78,7 +78,7 @@
 #include <nautilus/watchdog.h>
 #endif
 
-#ifdef NAUT_CONFIG_ENABLE_REMOTE_DEBUGGING 
+#ifdef NAUT_CONFIG_ENABLE_REMOTE_DEBUGGING
 #include <nautilus/gdb-stub.h>
 #endif
 
@@ -136,7 +136,7 @@
 #include <nautilus/vmm.h>
 #endif
 
-#ifdef NAUT_CONFIG_REAL_MODE_INTERFACE 
+#ifdef NAUT_CONFIG_REAL_MODE_INTERFACE
 #include <nautilus/realmode.h>
 #endif
 
@@ -169,7 +169,7 @@
 #include <nautilus/monitor.h>
 #endif
 
-#include <nautilus/syscall.h>
+#include <nautilus/syscall_kernel.h>
 
 extern spinlock_t printk_lock;
 
@@ -188,7 +188,7 @@ struct nk_sched_config sched_cfg = {
 
 
 
-static int 
+static int
 sysinfo_init (struct sys_info * sys)
 {
     sys->core_barrier = (nk_barrier_t*)malloc(sizeof(nk_barrier_t));
@@ -242,7 +242,7 @@ runtime_init (void)
 #ifdef NAUT_CONFIG_OPENMP_RT
 	nk_openmp_init();
 #endif
-	
+
 }
 
 
@@ -259,7 +259,7 @@ static int launch_vmm_environment()
 #ifdef NAUT_CONFIG_PALACIOS_MGMT_VM
   extern int guest_start;
   mgmt_vm = nk_vmm_start_vm("management-vm",&guest_start,0xffffffff);
-  if (!mgmt_vm) { 
+  if (!mgmt_vm) {
     ERROR_PRINT("Failed to start embedded management VM\n");
     return -1;
   }
@@ -295,13 +295,13 @@ init (unsigned long mbd,
      // At this point, we have no FPU, so we need to be
     // sure that nothing we invoke could be using SSE or
     // similar due to compiler optimization
-    
+
     nk_low_level_memset(naut, 0, sizeof(struct naut_info));
 
     vga_early_init();
 
     // At this point we have VGA output only
-    
+
     fpu_init(naut, FPU_BSP_INIT);
 
     // Now we are safe to use optimized code that relies
@@ -323,7 +323,7 @@ init (unsigned long mbd,
     nk_gpio_cpu_mask_add(1); // consider cpu 1 writes only
 #endif
 
-#ifdef NAUT_CONFIG_ENABLE_REMOTE_DEBUGGING 
+#ifdef NAUT_CONFIG_ENABLE_REMOTE_DEBUGGING
     nk_gdb_init();
 #endif
 
@@ -334,7 +334,7 @@ init (unsigned long mbd,
     nk_net_dev_init();
 
     nk_vc_print(NAUT_WELCOME);
-    
+
     detect_cpu();
 
     /* setup the temporary boot-time allocator */
@@ -350,7 +350,7 @@ init (unsigned long mbd,
     /* enumerate CPUs and initialize them */
     smp_early_init(naut);
 
-    /* this will populate NUMA-related structures and 
+    /* this will populate NUMA-related structures and
      * also initialize the relevant ACPI tables if they exist */
     nk_numa_init();
 
@@ -394,7 +394,7 @@ init (unsigned long mbd,
     nk_wait_queue_init();
 
     nk_future_init();
-    
+
     nk_timer_init();
 
     apic_init(naut->sys.cpus[0]);
@@ -402,7 +402,7 @@ init (unsigned long mbd,
     nk_rand_init(naut->sys.cpus[0]);
 
     nk_semaphore_init();
-    
+
     nk_msg_queue_init();
 
     ps2_init(naut);
@@ -418,7 +418,7 @@ init (unsigned long mbd,
 #else
     nk_cache_part_init(NAUT_CONFIG_CACHEPART_THREAD_DEFAULT_PERCENT,0);
 #endif
-#endif    
+#endif
 
     nk_thread_group_init();
     nk_group_sched_init();
@@ -431,7 +431,7 @@ init (unsigned long mbd,
 
     smp_setup_xcall_bsp(naut->sys.cpus[0]);
 
-    nk_cpu_topo_discover(naut->sys.cpus[0]); 
+    nk_cpu_topo_discover(naut->sys.cpus[0]);
 #ifdef NAUT_CONFIG_HPET
     nk_hpet_init();
 #endif
@@ -440,7 +440,7 @@ init (unsigned long mbd,
     nk_instrument_init();
 #endif
 
-#ifdef NAUT_CONFIG_REAL_MODE_INTERFACE 
+#ifdef NAUT_CONFIG_REAL_MODE_INTERFACE
     nk_real_mode_init();
 #endif
 
@@ -462,7 +462,7 @@ init (unsigned long mbd,
     extern void nk_cxx_init(void);
     // Assuming we don't encounter C++ before here
     nk_cxx_init();
-#endif 
+#endif
 
     // reinit the early-initted devices now that
     // we have malloc and the device framework functional
@@ -470,7 +470,7 @@ init (unsigned long mbd,
     serial_init();
 
     nk_sched_start();
-    
+
 #ifdef NAUT_CONFIG_FIBER_ENABLE
     nk_fiber_init();
     nk_fiber_startup();
@@ -486,7 +486,7 @@ init (unsigned long mbd,
 
     nk_vc_init();
 
-    
+
 #ifdef NAUT_CONFIG_VIRTUAL_CONSOLE_CHARDEV_CONSOLE
     nk_vc_start_chardev_console(NAUT_CONFIG_VIRTUAL_CONSOLE_CHARDEV_CONSOLE_NAME);
 #endif
@@ -529,7 +529,7 @@ init (unsigned long mbd,
 #ifdef NAUT_CONFIG_NET_COLLECTIVE_ETHERNET
     nk_net_ethernet_collective_init();
 #endif
-    
+
     nk_fs_init();
 
 #ifdef NAUT_CONFIG_EXT2_FILESYSTEM_DRIVER
@@ -565,10 +565,14 @@ init (unsigned long mbd,
 #ifdef NAUT_CONFIG_WATCHDOG
     nk_watchdog_init(NAUT_CONFIG_WATCHDOG_DEFAULT_TIME_MS * 1000000UL);
 #endif
-    
-    nk_syscall_init(); 
+
+// Initialize system call interface
+    nk_syscall_init();
+    init_syscall_table();
+
+
     nk_launch_shell("root-shell",0,0,0);
-   
+
     runtime_init();
 
     printk("Nautilus boot thread yielding (indefinitely)\n");

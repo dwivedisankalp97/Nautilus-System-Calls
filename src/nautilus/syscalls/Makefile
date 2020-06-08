@@ -9,4 +9,5 @@ obj-y += \
 	fstat.o \
 	lseek.o \
 	ftruncate.o \
+	getpid.o \
 	syscall.o
