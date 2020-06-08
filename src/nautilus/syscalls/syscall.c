@@ -2,11 +2,12 @@
 
 #include <nautilus/irq.h>
 
+#include <nautilus/msr.h>
 #include <nautilus/nautilus.h>
 #include <nautilus/shell.h>
-#include <nautilus/thread.h>
 #include <nautilus/syscall.h>
 #include <nautilus/syscall_kernel.h>
+#include <nautilus/thread.h>
 
 #ifndef NAUT_CONFIG_DEBUG_TIMERS
 #undef DEBUG_PRINT
@@ -17,21 +18,18 @@
 #define DEBUG(fmt, args...) DEBUG_PRINT("timer: " fmt, ##args)
 #define INFO(fmt, args...) INFO_PRINT("timer: " fmt, ##args)
 
-
 #define MAX_SYSCALL 301
 typedef int (*syscall_t)(int, int, int, int, int, int);
 
-
 syscall_t syscall_table[MAX_SYSCALL];
 
-void init_syscall_table(){
+void init_syscall_table() {
 
   int i;
 
-  for(i=0;i<MAX_SYSCALL;i++){
+  for (i = 0; i < MAX_SYSCALL; i++) {
     syscall_table[i] = 0;
   }
-
 
   syscall_table[READ] = &sys_read;
   syscall_table[WRITE] = &sys_write;
@@ -48,62 +46,81 @@ void init_syscall_table(){
   return;
 }
 
-
-
 int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
 
   struct nk_regs *r = (struct nk_regs *)((char *)excp - 128);
   int syscall_nr = (int)r->rax;
   INFO_PRINT("Inside syscall irq handler\n");
-  if (syscall_table[syscall_nr] != 0){
-    r->rax = syscall_table[syscall_nr](r->rdi,r->rsi,r->rdx,r->r10,r->r8,r->r9);
-  }
-  else{
+  if (syscall_table[syscall_nr] != 0) {
+    r->rax =
+        syscall_table[syscall_nr](r->rdi, r->rsi, r->rdx, r->r10, r->r8, r->r9);
+  } else {
     INFO_PRINT("System Call not Implemented!!");
   }
   return 0;
 }
 
+void syscall_entry(struct nk_regs *r) {
+  int syscall_nr = (int)r->rax;
+  INFO_PRINT("Inside syscall handler with no: %d\n", syscall_nr);
+}
 
-void nk_syscall_init() { register_int_handler(0x80, int80_handler, 0); }
+int syscall_setup() {
+  uint64_t r = msr_read(IA32_MSR_EFER);
+  r |= EFER_SCE;
+  msr_write(IA32_MSR_EFER, r);
 
+  /* SYSCALL and SYSRET CS in upper 32 bits */
+  msr_write(AMD_MSR_STAR,
+            ((0x8llu & 0xffffllu) << 32) | ((0x8llu & 0xffffllu) << 48));
 
+  /* target address */
+  msr_write(AMD_MSR_LSTAR, (uint64_t)syscall_handler);
+}
+
+void nk_syscall_init() {
+  register_int_handler(0x80, int80_handler, 0);
+  syscall_setup();
+}
 
 // handle shell command
 
 static int handle_syscall_test(char *buf, void *priv) {
   INFO_PRINT("Shell command for testing syscall invoked\n");
-  INFO_PRINT("%s\n",buf);
+  INFO_PRINT("%s\n", buf);
 
-  while(*buf != ' '){
+  while (*buf != ' ') {
     buf++;
   }
 
   buf++;
 
-  if(strcmp(buf,"getpid") == 0){
+  if (strcmp(buf, "getpid") == 0) {
     uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0);
-    nk_vc_printf("%ld\n",pid);
+    nk_vc_printf("%ld\n", pid);
   }
 
-  else if(strcmp(buf,"exit") == 0){
+  else if (strcmp(buf, "getpid_syscall") == 0) {
+    uint64_t pid = syscall_sycall(39, 0, 0, 0, 0, 0, 0);
+    nk_vc_printf("%ld\n", pid);
+  }
+
+  else if (strcmp(buf, "exit") == 0) {
     uint64_t pid = syscall_int80(60, 0, 0, 0, 0, 0, 0);
-    nk_vc_printf("%ld\n",pid);
+    nk_vc_printf("%ld\n", pid);
   }
 
-  else if(strcmp(buf,"fork") == 0){
+  else if (strcmp(buf, "fork") == 0) {
     uint64_t pid = syscall_int80(57, 0, 0, 0, 0, 0, 0);
-    nk_vc_printf("%ld\n",pid);
+    nk_vc_printf("%ld\n", pid);
   }
 
-  else{
-    syscall_int80(MAX_SYSCALL-1, 0, 0, 0, 0, 0, 0);
+  else {
+    syscall_int80(MAX_SYSCALL - 1, 0, 0, 0, 0, 0, 0);
   }
 
   return 0;
-
 }
-
 
 static struct shell_cmd_impl syscall_impl = {
 
@@ -114,6 +131,5 @@ static struct shell_cmd_impl syscall_impl = {
     .handler = handle_syscall_test,
 
 };
-
 
 nk_register_shell_cmd(syscall_impl);
