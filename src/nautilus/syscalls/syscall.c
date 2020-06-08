@@ -20,7 +20,7 @@
 
 #define MAX_SYSCALL 301
 typedef int (*syscall_t)(int, int, int, int, int, int);
-
+extern void syscall_entry(struct nk_regs *r);
 syscall_t syscall_table[MAX_SYSCALL];
 
 void init_syscall_table() {
@@ -60,9 +60,11 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
   return 0;
 }
 
-void syscall_entry(struct nk_regs *r) {
+void nk_syscall_handler(struct nk_regs *r) {
+  INFO_PRINT("Inside syscall handler\n");
   int syscall_nr = (int)r->rax;
-  INFO_PRINT("Inside syscall handler with no: %d\n", syscall_nr);
+  INFO_PRINT("syscall no: %d\n", syscall_nr);
+  
 }
 
 int syscall_setup() {
@@ -75,7 +77,8 @@ int syscall_setup() {
             ((0x8llu & 0xffffllu) << 32) | ((0x8llu & 0xffffllu) << 48));
 
   /* target address */
-  msr_write(AMD_MSR_LSTAR, (uint64_t)syscall_handler);
+  msr_write(AMD_MSR_LSTAR, (uint64_t)syscall_entry);
+  return 0;
 }
 
 void nk_syscall_init() {
@@ -101,7 +104,7 @@ static int handle_syscall_test(char *buf, void *priv) {
   }
 
   else if (strcmp(buf, "getpid_syscall") == 0) {
-    uint64_t pid = syscall_sycall(39, 0, 0, 0, 0, 0, 0);
+    uint64_t pid = syscall_syscall(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
