@@ -15,7 +15,7 @@ int nk_legacy_syscall_handler(excp_entry_t *excp,
 
                               void *state);
 
-void nk_syscall_handler(struct nk_regs *r);
+uint64_t nk_syscall_handler(struct nk_regs *r);
 
 void nk_syscall_init();
 
@@ -41,24 +41,6 @@ void init_syscall_table();
   movq % r15, -120(% rsp);                                                     \
   subq $120, % rsp;
 
-// #define SAVE_GPRS_SYSCALL()                                                    \
-//   pushq %rax;                                                    \
-//   pushq %rbx;                                                      \
-//   pushq %rcx;                                                      \
-//   pushq % rdx;                                                      \
-//   pushq % rsi;                                                      \
-//   pushq % rdi;                                                      \
-//   pushq % rbp;                                                      \
-//   pushq % r8;                                                       \
-//   pushq % r9;                                                       \
-//   pushq % r10;                                                      \
-//   pushq % r11;                                                      \
-//   pushq % r12;                                                      \
-//   pushq % r13;                                                     \
-//   pushq % r14;                                                  \
-//   pushq % r15;                                              \
-//   subq $120, % rsp;
-
 #define RESTORE_GPRS_EXCEPT_RAX()                                              \
   movq (% rsp), % r15;                                                         \
   movq 8(% rsp), % r14;                                                        \
@@ -76,12 +58,6 @@ void init_syscall_table();
   movq 104(% rsp), % rbx;                                                      \
   addq $120, % rsp;
 // 120 since last 8 is for RAX which we do not restore
-
-
-
-
-
-
 
 
 //#endif // _SYSCALL

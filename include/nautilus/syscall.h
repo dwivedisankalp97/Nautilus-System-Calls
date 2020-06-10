@@ -42,18 +42,6 @@ uint64_t syscall_int80(uint64_t num, ...) {
   return rc;
 }
 
-// void syscall_save_rcx(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3,
-//                          uint64_t a4, uint64_t a5, uint64_t a6) {
-//
-//   __asm__ __volatile__(
-//       "movq %%rsp, %%rcx; "
-//       "retq;"
-//       :
-//       :
-//       : );
-//
-//   return;
-// }
 
 uint64_t syscall_syscall(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3,
                          uint64_t a4, uint64_t a5, uint64_t a6) {
@@ -67,12 +55,12 @@ uint64_t syscall_syscall(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3,
       "movq %5, %%r10; "
       "movq %6, %%r8; "
       "movq %7, %%r9; "
-      "movq $123, %%rcx;"
-      "movq $123, %%rcx;"
-      "movq $123, %%rcx;"
+      //"movq $123, %%rcx;"
+      //"movq $123, %%rcx;"
+      //"movq $123, %%rcx;"
       "syscall; "
       "movq %%rax, %0; "
-      "retq;"
+      //"retq;"
       : "=m"(rc)
       : "m"(num), "m"(a1), "m"(a2), "m"(a3), "m"(a4), "m"(a5), "m"(a6)
       : "%rax", "%rdi", "%rsi", "%rdx", "%r10", "%r8", "%r9", "%r11");

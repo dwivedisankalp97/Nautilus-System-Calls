@@ -20,7 +20,7 @@
 
 #define MAX_SYSCALL 301
 typedef int (*syscall_t)(int, int, int, int, int, int);
-extern void syscall_entry(struct nk_regs *r);
+extern void syscall_entry(void);
 syscall_t syscall_table[MAX_SYSCALL];
 
 void init_syscall_table() {
@@ -61,12 +61,11 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
   return 0;
 }
 
-void nk_syscall_handler(struct nk_regs *r) {
+uint64_t nk_syscall_handler(struct nk_regs *r) {
   INFO_PRINT("Inside syscall handler\n");
   int syscall_nr = (int)r->rax;
   INFO_PRINT("syscall no: %d\n", syscall_nr);
-  INFO_PRINT("Rcx: %d\n", (int)r->rcx);
-
+  return 0xDEADBEEF;
 }
 
 int syscall_setup() {
@@ -108,7 +107,7 @@ static int handle_syscall_test(char *buf, void *priv) {
     nk_vc_printf("%ld\n", pid);
   }
 
-  else if (strcmp(syscall_name, "getpid_syscall") == 0) {
+  else if (strcmp(syscall_name, "test") == 0) {
     uint64_t pid = syscall_syscall(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
