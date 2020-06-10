@@ -52,6 +52,7 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
   int syscall_nr = (int)r->rax;
   INFO_PRINT("Inside syscall irq handler\n");
   if (syscall_table[syscall_nr] != 0) {
+    INFO_PRINT("HERE!\n");
     r->rax =
         syscall_table[syscall_nr](r->rdi, r->rsi, r->rdx, r->r10, r->r8, r->r9);
   } else {
@@ -64,6 +65,7 @@ void nk_syscall_handler(struct nk_regs *r) {
   INFO_PRINT("Inside syscall handler\n");
   int syscall_nr = (int)r->rax;
   INFO_PRINT("syscall no: %d\n", syscall_nr);
+  INFO_PRINT("Rcx: %d\n", (int)r->rcx);
 
 }
 
@@ -92,30 +94,44 @@ static int handle_syscall_test(char *buf, void *priv) {
   INFO_PRINT("Shell command for testing syscall invoked\n");
   INFO_PRINT("%s\n", buf);
 
-  while (*buf != ' ') {
-    buf++;
+  char syscall_name[32],syscall_argument[32];
+
+  if (sscanf(buf,"syscall %s %s",syscall_name, syscall_argument)!=2) {
+      INFO_PRINT("No arguments\n");
+  }
+  else if (sscanf(buf,"syscall %s",syscall_name)!=1) {
+      INFO_PRINT("Don't understand %s\n",buf);
   }
 
-  buf++;
-
-  if (strcmp(buf, "getpid") == 0) {
+  if (strcmp(syscall_name, "getpid") == 0) {
     uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
-  else if (strcmp(buf, "getpid_syscall") == 0) {
+  else if (strcmp(syscall_name, "getpid_syscall") == 0) {
     uint64_t pid = syscall_syscall(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
-  else if (strcmp(buf, "exit") == 0) {
+  else if (strcmp(syscall_name, "exit") == 0) {
     uint64_t pid = syscall_int80(60, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
-  else if (strcmp(buf, "fork") == 0) {
+  else if (strcmp(syscall_name, "fork") == 0) {
     uint64_t pid = syscall_int80(57, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
+  }
+
+  else if (strcmp(syscall_name, "write") == 0) {
+    uint64_t pid = syscall_int80(1, 1, syscall_argument, strlen(syscall_argument), 0, 0, 0);
+    nk_vc_printf("%ld\n", pid);
+  }
+
+  else if (strcmp(syscall_name, "read") == 0) {
+    char* buf = "";
+    uint64_t pid = syscall_int80(0, 0, (int)buf, atoi(syscall_argument), 0, 0, 0);
+    nk_vc_printf("%s\n", buf);
   }
 
   else {

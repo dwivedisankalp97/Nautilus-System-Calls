@@ -41,6 +41,24 @@ void init_syscall_table();
   movq % r15, -120(% rsp);                                                     \
   subq $120, % rsp;
 
+// #define SAVE_GPRS_SYSCALL()                                                    \
+//   pushq %rax;                                                    \
+//   pushq %rbx;                                                      \
+//   pushq %rcx;                                                      \
+//   pushq % rdx;                                                      \
+//   pushq % rsi;                                                      \
+//   pushq % rdi;                                                      \
+//   pushq % rbp;                                                      \
+//   pushq % r8;                                                       \
+//   pushq % r9;                                                       \
+//   pushq % r10;                                                      \
+//   pushq % r11;                                                      \
+//   pushq % r12;                                                      \
+//   pushq % r13;                                                     \
+//   pushq % r14;                                                  \
+//   pushq % r15;                                              \
+//   subq $120, % rsp;
+
 #define RESTORE_GPRS_EXCEPT_RAX()                                              \
   movq (% rsp), % r15;                                                         \
   movq 8(% rsp), % r14;                                                        \

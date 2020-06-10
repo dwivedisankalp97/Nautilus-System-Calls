@@ -9,10 +9,10 @@ Entry point for syscall handler
 .code64
 
 ENTRY(syscall_entry)
-    //swapgs
+    swapgs
     SAVE_GPRS_SYSCALL()
     movq %rsp, %rdi
     callq nk_syscall_handler
-    //movq $10, %rax
     RESTORE_GPRS_EXCEPT_RAX()
-    sysret
+    swapgs
+    sysretq
