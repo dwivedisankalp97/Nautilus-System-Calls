@@ -3,16 +3,14 @@
 #include <nautilus/shell.h>
 
 
-void
-sys_exit(
-	int	exit_status
-)
+int sys_exit(int	exit_status, int b, int c, int d, int e, int f)
 {
   nk_thread_exit((void*)(long)exit_status);
+	return 0;
 }
 
 static int handle_syscall_exit(char *buf, void *priv) {
-  sys_exit(0);
+  sys_exit(0, 0, 0, 0, 0, 0);
   return 0;
 }
 

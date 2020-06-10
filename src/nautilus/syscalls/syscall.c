@@ -64,7 +64,7 @@ void nk_syscall_handler(struct nk_regs *r) {
   INFO_PRINT("Inside syscall handler\n");
   int syscall_nr = (int)r->rax;
   INFO_PRINT("syscall no: %d\n", syscall_nr);
-  
+
 }
 
 int syscall_setup() {
