@@ -9,6 +9,12 @@
 #include <nautilus/syscall_table.h>
 #include <nautilus/syscall_decl.h>
 
+#if 1  // use syscall or not
+#define SYSCALL syscall_syscall
+#else
+#define SYSCALL syscall_int80
+#endif
+
 int nk_legacy_syscall_handler(excp_entry_t *excp,
 
                               excp_vec_t vector,

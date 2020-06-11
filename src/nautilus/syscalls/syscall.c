@@ -17,12 +17,12 @@
 #define ERROR(fmt, args...) ERROR_PRINT("timer: " fmt, ##args)
 #define DEBUG(fmt, args...) DEBUG_PRINT("timer: " fmt, ##args)
 #define INFO(fmt, args...) INFO_PRINT("timer: " fmt, ##args)
-
 #define MAX_SYSCALL 301
+
 typedef int (*syscall_t)(int, int, int, int, int, int);
-extern void syscall_entry(void);
 syscall_t syscall_table[MAX_SYSCALL];
 
+extern void syscall_entry(void);
 void init_syscall_table() {
 
   int i;
@@ -52,7 +52,6 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
   int syscall_nr = (int)r->rax;
   INFO_PRINT("Inside syscall irq handler\n");
   if (syscall_table[syscall_nr] != 0) {
-    INFO_PRINT("HERE!\n");
     r->rax =
         syscall_table[syscall_nr](r->rdi, r->rsi, r->rdx, r->r10, r->r8, r->r9);
   } else {
@@ -62,10 +61,16 @@ int int80_handler(excp_entry_t *excp, excp_vec_t vector, void *state) {
 }
 
 uint64_t nk_syscall_handler(struct nk_regs *r) {
-  INFO_PRINT("Inside syscall handler\n");
+  INFO_PRINT("Inside syscall_syscall handler\n");
   int syscall_nr = (int)r->rax;
-  INFO_PRINT("syscall no: %d\n", syscall_nr);
-  return 0xDEADBEEF;
+  if (syscall_table[syscall_nr] != 0) {
+    r->rax =
+        syscall_table[syscall_nr](r->rdi, r->rsi, r->rdx, r->r10, r->r8, r->r9);
+        INFO_PRINT("%d\n",r->rax);
+  } else {
+    INFO_PRINT("System Call not Implemented!!");
+  }
+  return r->rax;
 }
 
 int syscall_setup() {
@@ -103,33 +108,33 @@ static int handle_syscall_test(char *buf, void *priv) {
   }
 
   if (strcmp(syscall_name, "getpid") == 0) {
-    uint64_t pid = syscall_int80(39, 0, 0, 0, 0, 0, 0);
+    uint64_t pid = SYSCALL(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
   else if (strcmp(syscall_name, "test") == 0) {
-    uint64_t pid = syscall_syscall(39, 0, 0, 0, 0, 0, 0);
+    uint64_t pid = SYSCALL(39, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
   else if (strcmp(syscall_name, "exit") == 0) {
-    uint64_t pid = syscall_int80(60, 0, 0, 0, 0, 0, 0);
+    uint64_t pid = SYSCALL(60, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
   else if (strcmp(syscall_name, "fork") == 0) {
-    uint64_t pid = syscall_int80(57, 0, 0, 0, 0, 0, 0);
+    uint64_t pid = SYSCALL(57, 0, 0, 0, 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
   else if (strcmp(syscall_name, "write") == 0) {
-    uint64_t pid = syscall_int80(1, 1, syscall_argument, strlen(syscall_argument), 0, 0, 0);
+    uint64_t pid = SYSCALL(1, 1, syscall_argument, strlen(syscall_argument), 0, 0, 0);
     nk_vc_printf("%ld\n", pid);
   }
 
   else if (strcmp(syscall_name, "read") == 0) {
     char* buf = "";
-    uint64_t pid = syscall_int80(0, 0, (int)buf, atoi(syscall_argument), 0, 0, 0);
+    uint64_t pid = SYSCALL(0, 0, (int)buf, atoi(syscall_argument), 0, 0, 0);
     nk_vc_printf("%s\n", buf);
   }
 

@@ -11,8 +11,7 @@ sys_write(int     fd,
 	unsigned long flags;
 	int ret = -1;
 	//int orig_fd = fd;
-	nk_vc_printf("len = %d\n",len);
-	
+
 	if(fd == 1){
 		int i=0;
 		while(i<len){
