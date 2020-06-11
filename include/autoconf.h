@@ -1,7 +1,7 @@
 /*
  * Automatically generated C config: don't edit
  * Nautilus version: 
- * Wed Jun 10 17:16:54 2020
+ * Thu Jun 11 06:19:51 2020
  */
 #define AUTOCONF_INCLUDED
 
@@ -184,13 +184,13 @@
 #define NAUT_CONFIG_RAMDISK_EMBED 1
 #define NAUT_CONFIG_DEBUG_RAMDISK 1
 #define NAUT_CONFIG_ATA 1
-#define NAUT_CONFIG_DEBUG_ATA 1
+#undef NAUT_CONFIG_DEBUG_ATA
 
 /*
  * Filesystems
  */
 #define NAUT_CONFIG_EXT2_FILESYSTEM_DRIVER 1
-#undef NAUT_CONFIG_DEBUG_EXT2_FILESYSTEM_DRIVER
+#define NAUT_CONFIG_DEBUG_EXT2_FILESYSTEM_DRIVER 1
 #undef NAUT_CONFIG_FAT32_FILESYSTEM_DRIVER
 
 /*
