@@ -1,4 +1,6 @@
-Read more about system calls interface at https://docs.google.com/document/d/1qZwPmsfI4ukwGcjPQ0FLfARZK4D_QTLIm3aeClqB0F4/edit#heading=h.hcfsn8dd2dw4
+Read more about system calls interface at https://drive.google.com/file/d/12sH8tEXsPg4PSvGY5TdNTL8oHUi-frLJ/view
+
+Watch a demo: https://drive.google.com/file/d/18NjFsBoFMI2jdhSM8E0pPVH30Me-nBN1/view
 
 ![Nautilus Logo](http://cs.iit.edu/~khale/nautilus/img/nautilus_logo.png "Nautilus Logo")
 [![Build Status](https://travis-ci.com/HExSA-Lab/nautilus.svg?branch=master)](https://travis-ci.com/HExSA-Lab/nautilus)
